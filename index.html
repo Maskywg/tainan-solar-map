@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>臺南地區太陽光電分布 — 空拍衛星地圖</title>
+  <meta name="description" content="以 Esri 實際空拍衛星影像標示臺南七股、北門、將軍、學甲、麻豆、鹽水、安南及烏山頭水庫等太陽光電重點區域、漁電共生專區與政商／司法脈絡。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="臺南地區太陽光電分布 — 空拍衛星地圖" />
+  <meta property="og:description" content="以實際空拍衛星影像標示臺南沿海漁電共生、鹽灘地光電、水面型光電與相關政商／司法脈絡。" />
+  <meta property="og:url" content="https://maskywg.github.io/tainan-solar-map/" />
+  <meta property="og:image" content="https://maskywg.github.io/tainan-solar-map/og-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="臺南地區太陽光電分布空拍衛星互動地圖預覽" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="臺南地區太陽光電分布 — 空拍衛星地圖" />
+  <meta name="twitter:description" content="以實際空拍衛星影像標示臺南沿海漁電共生、鹽灘地光電、水面型光電與相關政商／司法脈絡。" />
+  <meta name="twitter:image" content="https://maskywg.github.io/tainan-solar-map/og-preview.png" />
+  <meta name="twitter:image:alt" content="臺南地區太陽光電分布空拍衛星互動地圖預覽" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #sidebar {
+      width: 360px;
+      min-width: 300px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .header {
+      padding: 16px;
+      border-bottom: 1px solid #334155;
+    }
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+    .header p {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+    .filters {
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid #334155;
+    }
+    .filter-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #cbd5e1;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn.active {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .toggle-row {
+      padding: 8px 16px;
+      border-bottom: 1px solid #334155;
+      font-size: 12px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .card:hover, .card.active {
+      border-color: #38bdf8;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .card-scale {
+      font-size: 12px;
+      color: #38bdf8;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .card-rel {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #334155;
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+    #map {
+      flex: 1;
+      height: 100%;
+    }
+    .leaflet-popup-content-wrapper {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 8px;
+    }
+    .leaflet-popup-tip {
+      background: #1e293b;
+    }
+    .popup-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .popup-meta { font-size: 12px; color: #38bdf8; margin-bottom: 6px; }
+    .popup-body { font-size: 12px; color: #cbd5e1; line-height: 1.5; }
+    @media (max-width: 768px) {
+      body { flex-direction: column-reverse; }
+      #sidebar { width: 100%; height: 44vh; border-right: none; border-top: 1px solid #334155; }
+      #map { height: 56vh; }
+    }
+  </style>
+</head>
+<body>
+  <aside id="sidebar">
+    <div class="header">
+      <h1>臺南光電分布 — 實際空拍衛星地圖</h1>
+      <p>底圖採用 Esri 衛星影像，可放大檢視七股、將軍、北門沿海實際光電板矩陣與魚塭地景。</p>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">全部區域</button>
+      <button class="filter-btn" data-filter="fishery">漁電共生</button>
+      <button class="filter-btn" data-filter="ground">地面／鹽灘</button>
+      <button class="filter-btn" data-filter="dispute">司法／爭議</button>
+      <button class="filter-btn" data-filter="water">水面型</button>
+    </div>
+
+    <label class="toggle-row">
+      <input type="checkbox" id="toggle-t61" checked />
+      <span>顯示台61線（西濱快速道路）界線</span>
+    </label>
+
+    <div class="list" id="zone-list"></div>
+  </aside>
+
+  <main id="map"></main>
+
+  <script>
+    const ZONES = [
+      {
+        id: 'nanyanguang',
+        name: '台電臺南鹽田光電場（南鹽光）',
+        lat: 23.168, lng: 120.114,
+        radius: 1300,
+        zoom: 14,
+        categories: ['ground'],
+        color: '#f59e0b',
+        badge: '150 MW 地面鹽灘',
+        scale: '橫跨七股／將軍交界，約 214 公頃、裝置容量 150 MW（含 20 MW 儲能）',
+        details: '由台電於原七股鹽場廢棄鹽灘地建置，約 48 萬片太陽能板。放大空拍圖可清晰看見整齊排列的光電板矩陣。',
+        relation: '公有廢棄鹽灘地開發，為國內指標性大型地面鹽灘光電與光儲合一示範場。'
+      },
+      {
+        id: 'qigu',
+        name: '七股區漁電共生核心區',
+        lat: 23.135, lng: 120.095,
+        radius: 2600,
+        zoom: 13,
+        categories: ['fishery', 'dispute'],
+        color: '#10b981',
+        badge: '全台密度最高',
+        scale: '裝置容量與面積居全台單一行政區之冠（占全區逾三成）',
+        details: '涵蓋七股頂山、西寮、三股一帶魚塭與早期農地變更案場。因緊鄰黑面琵鷺保護區與傳統養殖區，曾引發搶地排擠與「假養殖真種電」爭議。',
+        relation: '涉及力暘「小二甲」案場分布、台鹽綠能轉包爭議及議會要求台61線以西暫緩討論。'
+      },
+      {
+        id: 'jiangjun',
+        name: '將軍區光電與索賄案場區',
+        lat: 23.208, lng: 120.118,
+        radius: 1700,
+        zoom: 13,
+        categories: ['fishery', 'dispute'],
+        color: '#ef4444',
+        badge: '司法起訴焦點',
+        scale: '將軍沿海養殖魚塭與廢棄鹽灘地帶',
+        details: '2025 年橋頭地檢署查出前台南市議長郭信良涉嫌與三地集團創辦人鍾嘉村等人合作，護航將軍區光電案場審查並索賄。',
+        relation: '2025年10月依貪污罪起訴；12月再因光電場土地違法回填近5萬立方公尺營建廢棄物追加起訴。'
+      },
+      {
+        id: 'beimen',
+        name: '北門區漁電共生專區（蘆竹溝／三寮灣）',
+        lat: 23.255, lng: 120.115,
+        radius: 2000,
+        zoom: 13,
+        categories: ['fishery'],
+        color: '#10b981',
+        badge: '室外漁電專區',
+        scale: '三寮灣、二重港、蚵寮及蘆竹溝一帶魚塭',
+        details: '傳統水產養殖重鎮，多採室外漁電共生模式，須通過「環社檢核」並維持養殖事實；曾發生蘆竹溝反光電抗爭。',
+        relation: '地方居民與民代長期要求落實社區溝通與「先有魚才有電」查核。'
+      },
+      {
+        id: 'xuejia',
+        name: '學甲區（漁電與 88 槍擊案區）',
+        lat: 23.232, lng: 120.180,
+        radius: 1800,
+        zoom: 13,
+        categories: ['fishery', 'dispute'],
+        color: '#ef4444',
+        badge: '88 槍擊案・養殖開鍘',
+        scale: '學甲區市區及西北側魚塭先行區',
+        details: '2022 年選前發生「88 槍擊案」，槍手掃射前市議員謝財旺服務處與郭再欽舊廠房（2025 年 3 月三審定讞）。市府亦曾在此區廢止未實際養殖案場執照。',
+        relation: '反映地方派系、光電利益分配衝突與治安事件交織的脈絡。'
+      },
+      {
+        id: 'madou',
+        name: '麻豆區溪北漁電合作區',
+        lat: 23.182, lng: 120.248,
+        radius: 1400,
+        zoom: 13,
+        categories: ['fishery'],
+        color: '#10b981',
+        badge: '由下而上漁電',
+        scale: '溪北平原魚塭群（與學甲跨區推動）',
+        details: '近年地方養殖協會與業者推動「由下而上」漁電共生開發，強調維持文蛤、虱目魚等水產養殖產能。',
+        relation: '內陸平原魚塭轉型綠能代表區域。'
+      },
+      {
+        id: 'yanshui',
+        name: '鹽水區農牧屋頂與分散式光電',
+        lat: 23.320, lng: 120.266,
+        radius: 1300,
+        zoom: 13,
+        categories: ['ground'],
+        color: '#f59e0b',
+        badge: '屋頂／農牧設施',
+        scale: '以畜牧場屋頂與農業設施為主，總容量較沿海四區小',
+        details: '多結合畜舍屋頂或零星農業設施設置；自 2020 年中央祭出「小二甲」農地變更禁令後，零星農地種電已大幅受限。',
+        relation: '受小二甲禁令與市府嚴審影響較明顯的溪北農業區。'
+      },
+      {
+        id: 'annan',
+        name: '安南區科工區與四草魚塭交界',
+        lat: 23.045, lng: 120.145,
+        radius: 1600,
+        zoom: 13,
+        categories: ['ground', 'fishery'],
+        color: '#f59e0b',
+        badge: '工業屋頂＋魚塭',
+        scale: '台南科技工業區廠房屋頂及周邊魚塭帶',
+        details: '兼具都會工業區大型屋頂光電與沿海魚塭地景，曾文溪口以南緊鄰台江國家公園與濕地生態保護區。',
+        relation: '開發須嚴格避開國家公園及水鳥棲地保護範圍。'
+      },
+      {
+        id: 'wushantou',
+        name: '烏山頭水庫水面型光電',
+        lat: 23.205, lng: 120.372,
+        radius: 1200,
+        zoom: 14,
+        categories: ['water', 'dispute'],
+        color: '#38bdf8',
+        badge: '水面型光電',
+        scale: '官田與六甲交界水域空間太陽光電系統',
+        details: '採浮筒式水面型太陽光電，不佔用農地，但水庫架設光電板對水質、景觀與清淤之影響長期受議會與環團質詢關注。',
+        relation: '在野黨民代多次針對水庫種電環評與水質監測提出監督。'
+      }
+    ];
+
+    // Initialize Map centered on Tainan Coastal Solar Belt
+    const map = L.map('map', { zoomControl: true }).setView([23.185, 120.165], 11);
+
+    // Esri World Imagery (Actual Aerial / Satellite Tiles)
+    const esriSatellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
+        maxZoom: 19
+      }
+    ).addTo(map);
+
+    // Optional reference labels overlay (Esri World Boundaries and Places - no API key watermark)
+    const labelsOverlay = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      {
+        maxZoom: 19,
+        opacity: 0.9
+      }
+    ).addTo(map);
+
+    const osmStandard = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+      }
+    );
+
+    L.control.layers(
+      { '空拍衛星圖 (Esri)': esriSatellite, '一般街道圖 (OSM)': osmStandard },
+      { '地名路名標註': labelsOverlay },
+      { position: 'topright' }
+    ).addTo(map);
+
+    // Tai-61 Provincial Highway (Approximate alignment from Beimen to Annan)
+    const tai61Coords = [
+      [23.295, 120.133],
+      [23.268, 120.128],
+      [23.235, 120.118],
+      [23.205, 120.111],
+      [23.172, 120.106],
+      [23.135, 120.102],
+      [23.095, 120.104],
+      [23.068, 120.116]
+    ];
+    const tai61Line = L.polyline(tai61Coords, {
+      color: '#facc15',
+      weight: 3,
+      dashArray: '8, 6',
+      opacity: 0.9
+    }).bindPopup('<div class="popup-title">台61線（西濱快速道路）</div><div class="popup-body">台南市議會與環團多次要求「台61線以西」生態敏感帶應暫緩光電審查並實施總量管制。</div>').addTo(map);
+
+    document.getElementById('toggle-t61').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        tai61Line.addTo(map);
+      } else {
+        map.removeLayer(tai61Line);
+      }
+    });
+
+    const markersGroup = L.layerGroup().addTo(map);
+    const layerById = {};
+    let activeFilter = 'all';
+    let selectedId = 'nanyanguang';
+
+    function renderZones() {
+      markersGroup.clearLayers();
+      const listEl = document.getElementById('zone-list');
+      listEl.innerHTML = '';
+
+      const filtered = activeFilter === 'all'
+        ? ZONES
+        : ZONES.filter(z => z.categories.includes(activeFilter));
+
+      filtered.forEach(z => {
+        const circle = L.circle([z.lat, z.lng], {
+          radius: z.radius,
+          color: z.color,
+          fillColor: z.color,
+          fillOpacity: 0.25,
+          weight: 2
+        });
+
+        const marker = L.circleMarker([z.lat, z.lng], {
+          radius: 7,
+          color: '#ffffff',
+          fillColor: z.color,
+          fillOpacity: 1,
+          weight: 2
+        });
+
+        const popupHtml = `
+          <div class="popup-title">${z.name}</div>
+          <div class="popup-meta">${z.badge}｜${z.scale}</div>
+          <div class="popup-body">${z.details}<br/><br/><strong>政商／司法脈絡：</strong>${z.relation}</div>
+        `;
+        circle.bindPopup(popupHtml);
+        marker.bindPopup(popupHtml);
+
+        circle.addTo(markersGroup);
+        marker.addTo(markersGroup);
+        layerById[z.id] = { circle, marker };
+
+        const card = document.createElement('div');
+        card.className = `card ${z.id === selectedId ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="card-top">
+            <div class="card-title">${z.name}</div>
+            <span class="badge" style="background:${z.color}26; color:${z.color}; border:1px solid ${z.color}66;">${z.badge}</span>
+          </div>
+          <div class="card-scale">${z.scale}</div>
+          <div class="card-desc">${z.details}</div>
+          <div class="card-rel">${z.relation}</div>
+        `;
+        card.addEventListener('click', () => {
+          selectedId = z.id;
+          document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          map.flyTo([z.lat, z.lng], z.zoom, { duration: 0.8 });
+          marker.openPopup();
+        });
+        listEl.appendChild(card);
+      });
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderZones();
+      });
+    });
+
+    renderZones();
+  </script>
+</body>
+</html>
