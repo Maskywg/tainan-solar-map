@@ -1,0 +1,52 @@
+{
+  "checked_on": "2026-11-27",
+  "register_date": "2026-09-09",
+  "statistics_metadata_updated": "2026-07-17",
+  "statistics_period": "原始 CSV 未註明統計截止日；不可將 metadata 更新日當成統計截止日",
+  "sources": [
+    {
+      "id": "approved-2026-09-09",
+      "title": "2公頃以下太陽光電及相關已核准案件",
+      "url": "https://economic.tainan.gov.tw/News_Content.aspx?n=37460&s=8130846",
+      "file": "sources/approved-2026-09-09.pdf",
+      "scope": "2公頃以下與相關附屬設施；不是完整設備登記清冊"
+    },
+    {
+      "id": "district-statistics",
+      "title": "歷年太陽光電同意備案核准統計表",
+      "url": "https://data.tainan.gov.tw/Resource/b14a254a-a1a1-428a-9d10-4506f18c97e6",
+      "file": "sources/district-statistics.csv",
+      "scope": "核准件數與容量；非即時運轉設備統計"
+    },
+    {
+      "id": "district-areas",
+      "title": "臺南市所轄面積暨行政區里鄰數－112年9月",
+      "url": "https://data.tainan.gov.tw/Resource/eb1e5384-44fa-49fa-a7f6-e855ceb22302",
+      "file": "sources/district-areas-2023-09.csv"
+    },
+    {
+      "id": "approved-2025-11-27",
+      "title": "已核准清冊 2025.11.27 歷史版本",
+      "file": "sources/approved-2025-11-27.pdf",
+      "url": "https://w3fs.tainan.gov.tw/Download.ashx?n=5bey5qC45YeG5riF5YaKXzExNC4xMS4yNy5wZGY%3D&u=LzAwMS9VcGxvYWQvMjIvcmVsZmlsZS8yNTYzMC84MTMwODQ2L2JkOTNkYzA5LTI2ODYtNDM1YS1hZjM1LTE4NjU0MTI1N2MyMC5wZGY%3D"
+    },
+    {
+      "id": "approved-2026-03-05",
+      "title": "已核准清冊 2026.03.05 歷史版本",
+      "file": "sources/approved-2026-03-05.pdf",
+      "url": "https://w3fs.tainan.gov.tw/Download.ashx?n=5bey5qC45YeG5riF5YaKXzExNS4zLjUucGRm&u=LzAwMS9VcGxvYWQvMjIvcmVsZmlsZS8yNTYzMC84MTMwODQ2LzkyN2NiOGNlLTBmZTAtNGZhMS04MjVhLWFkZGM2ZjNhYWRkMi5wZGY%3D"
+    },
+    {
+      "id": "pending-2026-09-09",
+      "title": "2公頃以下尚未核准清單",
+      "url": "https://economic.tainan.gov.tw/news_content.aspx?n=37460&s=7948121",
+      "file": "sources/pending-2026-09-09.html"
+    },
+    {
+      "id": "district-boundaries",
+      "title": "鄉鎮市區界線1140318",
+      "url": "https://data.gov.tw/dataset/7441",
+      "file": "sources/boundaries-source.json"
+    }
+  ]
+}
